@@ -1,5 +1,5 @@
 <body>
-  <h1>Projet Blog Symfony VueJS</h1>
+  <h1>Projet Blog Symfony VueJs</h1>
   <p>Ce projet est une application de blog développée avec Symfony et Vue.js. Il offre les fonctionnalités suivantes :</p>
   <ul>
     <li>Création, édition, suppression et affichage d'articles de blog</li>
