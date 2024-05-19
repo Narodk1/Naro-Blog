@@ -2,27 +2,27 @@
 
 namespace App\Repository;
 
-use App\Entity\Tags;
+use App\Entity\tags;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Tags>
+ * @extends ServiceEntityRepository<tags>
  *
- * @method Tags|null find($id, $lockMode = null, $lockVersion = null)
- * @method Tags|null findOneBy(array $criteria, array $orderBy = null)
- * @method Tags[]    findAll()
- * @method Tags[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method tags|null find($id, $lockMode = null, $lockVersion = null)
+ * @method tags|null findOneBy(array $criteria, array $orderBy = null)
+ * @method tags[]    findAll()
+ * @method tags[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TagsRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Tags::class);
+        parent::__construct($registry, tags::class);
     }
 
     //    /**
-    //     * @return Tags[] Returns an array of Tags objects
+    //     * @return tags[] Returns an array of tags objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -36,7 +36,7 @@ class TagsRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Tags
+    //    public function findOneBySomeField($value): ?tags
     //    {
     //        return $this->createQueryBuilder('t')
     //            ->andWhere('t.exampleField = :val')

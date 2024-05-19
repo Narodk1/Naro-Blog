@@ -6,40 +6,69 @@ use App\Repository\PostRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use App\Entity\Images;
+
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(
+    'slug',
+    message: 'ce slug existe deja .'
+
+    )]
 class Post
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $id_post = null;
+    #[ORM\Column(length: 255,unique: true)]
+    #[Assert\NotBlank()]
+    private ?string $titre ;
 
-    #[ORM\Column(length: 255)]
-    private ?string $titre = null;
+    #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank()]
+    private string $contenu;
 
-    #[ORM\Column(length: 255)]
-    private ?string $contenu = null;
-
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date_publication = null;
 
     #[ORM\ManyToOne(inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $image = null;
 
-    /**
-     * @var Collection<int, tags>
-     */
-    #[ORM\ManyToMany(targetEntity: tags::class, inversedBy: 'posts')]
-    private Collection $tags;
+    #[ORM\Column(type:'datetime_immutable')]
+    private ?\DateTimeImmutable $updateAt;
+    #[ORM\Column(type:'datetime_immutable')]
+    private ?\DateTimeImmutable $createdAt;
+    #[ORM\OneToOne(targetEntity: Images::class, inversedBy: 'post', cascade: ['persist','remove'])]
+    private ?Images $images = null;
+
+    public function getUpdateAt(): ?\DateTimeImmutable
+    {
+        return $this->updateAt;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setUpdateAt(?\DateTimeImmutable $updateAt): void
+    {
+        $this->updateAt = $updateAt;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+
+
 
     /**
      * @var Collection<int, Commentaire>
@@ -47,28 +76,35 @@ class Post
     #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'post')]
     private Collection $commentaires;
 
+    /**
+     * @var Collection<int, Categorie>
+     */
+    #[ORM\ManyToMany(targetEntity: Categorie::class, mappedBy: 'post')]
+    private Collection $categories;
+
     public function __construct()
     {
-        $this->tags = new ArrayCollection();
         $this->commentaires = new ArrayCollection();
+        $this->images = new Images();
+        $this->categories = new ArrayCollection();
+        $this->updateAt=new \DateTimeImmutable();
+        $this->createdAt=new \DateTimeImmutable();
     }
+    #[ORM\PreUpdate]
+    public function preUpdate (){
+        $this->updateAt=new \DateTimeImmutable();
+
+    }
+
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getIdPost(): ?int
-    {
-        return $this->id_post;
-    }
 
-    public function setIdPost(int $id_post): static
-    {
-        $this->id_post = $id_post;
 
-        return $this;
-    }
+
 
     public function getTitre(): ?string
     {
@@ -118,24 +154,17 @@ class Post
         return $this;
     }
 
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
 
-    public function setImage(string $image): static
-    {
-        $this->image = $image;
 
-        return $this;
-    }
 
     /**
      * @return Collection<int, tags>
      */
     public function getTags(): Collection
     {
+
         return $this->tags;
+
     }
 
     public function addTag(tags $tag): static
@@ -178,6 +207,63 @@ class Post
             // set the owning side to null (unless already changed)
             if ($commentaire->getPost() === $this) {
                 $commentaire->setPost(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Categorie>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Categorie $category): static
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+            $category->addPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Categorie $category): static
+    {
+        if ($this->categories->removeElement($category)) {
+            $category->removePost($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return \App\Entity\Images
+     */
+    public function getImages():?Images
+    {
+        return $this->images;
+    }
+
+    public function addImage(Images $image): static
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+            $image->setIdentity($this);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(Images $image): static
+    {
+        if ($this->images->removeElement($image)) {
+            // set the owning side to null (unless already changed)
+            if ($image->getIdentity() === $this) {
+                $image->setIdentity(null);
             }
         }
 

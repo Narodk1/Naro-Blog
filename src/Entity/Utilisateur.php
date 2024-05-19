@@ -3,82 +3,43 @@
 namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $id_user = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $nom = null;
-
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 180)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $mdp = null;
-
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date_creation = null;
-
+    /**
+     * @var list<string> The user roles
+     */
     #[ORM\Column]
-    private ?bool $admin = null;
+    private array $roles = [];
 
     /**
-     * @var Collection<int, Post>
+     * @var string The hashed password
      */
-    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'utilisateur')]
-    private Collection $posts;
-
-    /**
-     * @var Collection<int, Commentaire>
-     */
-    #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'utilisateur')]
-    private Collection $commentaires;
-
-    public function __construct()
-    {
-        $this->posts = new ArrayCollection();
-        $this->commentaires = new ArrayCollection();
-    }
+    #[ORM\Column]
+    private ?string $password = null;
+    #[ORM\Column(length: 180, unique: true)]
+    private ?string $username = null;
+    #[ORM\Column]
+    private bool $isVerified = false;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getIdUser(): ?int
-    {
-        return $this->id_user;
-    }
-
-    public function setIdUser(int $id_user): static
-    {
-        $this->id_user = $id_user;
-
-        return $this;
-    }
-
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function setNom(string $nom): static
-    {
-        $this->nom = $nom;
-
-        return $this;
     }
 
     public function getEmail(): ?string
@@ -93,98 +54,83 @@ class Utilisateur
         return $this;
     }
 
-    public function getMdp(): ?string
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
     {
-        return $this->mdp;
+        return (string) $this->email;
+    }
+    public function getUsername(): ?string
+    {
+        return $this->username;
     }
 
-    public function setMdp(string $mdp): static
+    public function setUsername(string $username): static
     {
-        $this->mdp = $mdp;
-
-        return $this;
-    }
-
-    public function getDateCreation(): ?\DateTimeInterface
-    {
-        return $this->date_creation;
-    }
-
-    public function setDateCreation(\DateTimeInterface $date_creation): static
-    {
-        $this->date_creation = $date_creation;
-
-        return $this;
-    }
-
-    public function isAdmin(): ?bool
-    {
-        return $this->admin;
-    }
-
-    public function setAdmin(bool $admin): static
-    {
-        $this->admin = $admin;
+        $this->username = $username;
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Post>
+     * @see UserInterface
+     *
+     * @return list<string>
      */
-    public function getPosts(): Collection
+    public function getRoles(): array
     {
-        return $this->posts;
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
-    public function addPost(Post $post): static
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
     {
-        if (!$this->posts->contains($post)) {
-            $this->posts->add($post);
-            $post->setUtilisateur($this);
-        }
-
-        return $this;
-    }
-
-    public function removePost(Post $post): static
-    {
-        if ($this->posts->removeElement($post)) {
-            // set the owning side to null (unless already changed)
-            if ($post->getUtilisateur() === $this) {
-                $post->setUtilisateur(null);
-            }
-        }
+        $this->roles = $roles;
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Commentaire>
+     * @see PasswordAuthenticatedUserInterface
      */
-    public function getCommentaires(): Collection
+    public function getPassword(): string
     {
-        return $this->commentaires;
+        return $this->password;
     }
 
-    public function addCommentaire(Commentaire $commentaire): static
+    public function setPassword(string $password): static
     {
-        if (!$this->commentaires->contains($commentaire)) {
-            $this->commentaires->add($commentaire);
-            $commentaire->setUtilisateur($this);
-        }
+        $this->password = $password;
 
         return $this;
     }
 
-    public function removeCommentaire(Commentaire $commentaire): static
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
     {
-        if ($this->commentaires->removeElement($commentaire)) {
-            // set the owning side to null (unless already changed)
-            if ($commentaire->getUtilisateur() === $this) {
-                $commentaire->setUtilisateur(null);
-            }
-        }
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
 
         return $this;
     }
