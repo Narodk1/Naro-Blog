@@ -24,6 +24,14 @@
                 </div>
                 <div class="form mt-5">
                     <form method="post" >
+
+                        {# Afficher les messages flash de succès #}
+                        {% for flashMessage in app.flashes('success') %}
+                            <div class="alert alert-success">
+                                {{ flashMessage }}
+                            </div>
+                        {% endfor %}
+
                         {% if error %}
                             <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                         {% endif %}

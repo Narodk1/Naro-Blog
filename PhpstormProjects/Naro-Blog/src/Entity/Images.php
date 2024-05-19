@@ -4,8 +4,13 @@ namespace App\Entity;
 
 use App\Repository\ImagesRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Vich\UploaderBundle\Entity\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ImagesRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
+
 class Images
 {
     #[ORM\Id]
@@ -13,53 +18,86 @@ class Images
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $url = null;
+    #[Vich\UploadableField(mapping:'posts_image',fileNameProperty:'imageName',size:'imageSize')]
+    private ?File $imageFile=null;
+    #[ORM\Column(type: 'string')]
+    private ?string $imageName = null;
+    /**
+     * @ORM\Column(nullable="true")
+     */
+    #[ORM\Column(type: 'integer')]
+    private ?int $imageSize = null;
+    #[ORM\Column(type: 'datetime_immutable')]
 
-    #[ORM\Column(length: 255)]
-    private ?string $type = null;
+    private ?\DateTimeImmutable $updatedAt ;
+    #[ORM\OneToOne(targetEntity: Post::class, mappedBy: 'images', cascade: ['persist','remove'])]
+    private ?Post $Post = null;
 
-    #[ORM\ManyToOne(inversedBy: 'images')]
-    private ?Post $identity = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUrl(): ?string
+    public function setId(?int $id): void
     {
-        return $this->url;
+        $this->id = $id;
     }
 
-    public function setUrl(string $url): static
-    {
-        $this->url = $url;
 
-        return $this;
+    public function getPost(): ?Post
+    {
+        return $this->Post;
     }
 
-    public function getType(): ?string
+    public function setPost(?Post $Post): void
     {
-        return $this->type;
+        $this->Post = $Post;
+    }
+    public function __construct()
+    {
+        $this->updatedAt=new \DateTimeImmutable();
+    }
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->updatedAt = new \DateTimeImmutable();
+        }
     }
 
-    public function setType(string $type): static
+    public function getImageFile(): ?File
     {
-        $this->type = $type;
-
-        return $this;
+        return $this->imageFile;
     }
 
-    public function getIdentity(): ?Post
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->identity;
+        return $this->updatedAt;
     }
 
-    public function setIdentity(?Post $identity): static
+    public function setImageName(?string $imageName): void
     {
-        $this->identity = $identity;
-
-        return $this;
+        $this->imageName = $imageName;
     }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
+    }
+
+
 }

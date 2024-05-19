@@ -8,13 +8,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PrincipalController extends AbstractController
 {
-    #[Route('', name: 'app_index')]
-    public function index(): Response
-    {
-        return $this->render('index/index.html.twig', [
-            'controller_name' => 'PrincipalController',
-        ]);
-    }
+
     #[Route('about', name: 'app_about')]
     public function about(): Response
     {

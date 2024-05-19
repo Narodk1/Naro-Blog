@@ -20,7 +20,16 @@
                     </div>
                 </div>
                 <div class="form mt-5">
-                    {{ form_errors(registrationForm) }}
+                    {# templates/your_template.html.twig #}
+
+                    {# Afficher les messages flash de succès #}
+                    {% for flashMessage in app.flashes('success') %}
+                        <div class="alert alert-success">
+                            {{ flashMessage }}
+                        </div>
+                    {% endfor %}
+
+
                     {{ form_start(registrationForm) }}
                     <div class="row">
                         <div class="form-group col-md-6">
@@ -37,6 +46,7 @@
                         {{ form_row(registrationForm.AccepterLesConditions, { 'attr': {'class': 'form-check-input'} }) }}
                         <label class="form-check-label" for="{{ registrationForm.AccepterLesConditions.vars.id }}" style="display: none;">accepter les conditions</label>
                     </div>
+                    {{ form_errors(registrationForm) }}
                     <button type="submit" class="btn btn-primary">Register</button>
                     {{ form_end(registrationForm) }}
                 </div>
