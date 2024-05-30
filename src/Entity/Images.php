@@ -4,7 +4,8 @@ namespace App\Entity;
 
 use App\Repository\ImagesRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Vich\UploaderBundle\Entity\File;
+use Symfony\Component\HttpFoundation\File\File;
+
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ImagesRepository::class)]
@@ -20,8 +21,8 @@ class Images
 
     #[Vich\UploadableField(mapping:'posts_image',fileNameProperty:'imageName',size:'imageSize')]
     private ?File $imageFile=null;
-    #[ORM\Column(type: 'string')]
-    private ?string $imageName = null;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $imageName =null;
     /**
      * @ORM\Column(nullable="true")
      */
@@ -48,6 +49,11 @@ class Images
     public function getPost(): ?Post
     {
         return $this->Post;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
     }
 
     public function setPost(?Post $Post): void

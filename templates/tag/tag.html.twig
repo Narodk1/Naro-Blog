@@ -1,0 +1,40 @@
+{# templates/tag/tag.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+
+{% block body %}
+
+{% block header %}
+{{ parent() }}
+{% endblock %}
+
+    <div class="container mt-5">
+        <br>
+        <br>
+        <h1>Posts sur : {{ tag.name }}</h1>
+
+        <div class="row">
+
+            {% for post in posts %}
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        {% if post.images %}
+                            <img src="{{ vich_uploader_asset(post.images, 'imageFile') }}" class="card-img-top" alt="{{ post.images.imageName }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.titre }}</h5>
+                            <p class="card-text">{{ post.contenu|slice(0, 100) }}...</p>
+                            <a href="{{ path('app_single', {'id': post.id}) }}" class="btn btn-primary">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+   
+    {% block footer %}
+    {{ parent() }}
+{% endblock %}
+
+{% endblock %}

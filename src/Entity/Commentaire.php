@@ -14,40 +14,34 @@ class Commentaire
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $id_commentaire = null;
 
     #[ORM\Column(length: 1015)]
     private ?string $contenu = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type:'datetime_immutable')]
     private ?\DateTimeInterface $date_publication = null;
 
-    #[ORM\ManyToOne(inversedBy: 'commentaires')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\ManyToOne(inversedBy: 'c1ommentaires')]
+    #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: 'commentaires')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?post $post = null;
+    private Post $post;
+
+    public function __construct()
+    {
+    
+        $this->date_publication=new \DateTimeImmutable();
+
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getIdCommentaire(): ?int
-    {
-        return $this->id_commentaire;
-    }
-
-    public function setIdCommentaire(?int $id_commentaire): static
-    {
-        $this->id_commentaire = $id_commentaire;
-
-        return $this;
-    }
-
+   
     public function getContenu(): ?string
     {
         return $this->contenu;

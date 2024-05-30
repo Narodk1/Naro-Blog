@@ -7,18 +7,16 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use App\Entity\Images;
-
+use App\Entity\Categorie;
+use  App\Entity\Tag;
+use Doctrine\ORM\Mapping\JoinTable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[UniqueEntity(
-    'slug',
-    message: 'ce slug existe deja .'
 
-    )]
 class Post
 {
     #[ORM\Id]
@@ -45,8 +43,16 @@ class Post
     private ?\DateTimeImmutable $updateAt;
     #[ORM\Column(type:'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt;
-    #[ORM\OneToOne(targetEntity: Images::class, inversedBy: 'post', cascade: ['persist','remove'])]
-    private ?Images $images = null;
+    #[ORM\OneToOne(targetEntity: Images::class, inversedBy: 'Post', cascade: ['persist','remove'])]
+    private ?Images $images =null;
+    #[ORM\ManyToMany(targetEntity: Categorie::class, mappedBy: 'posts')]
+    #[ORM\JoinTable(name: "post_categorie")]
+    private Collection $categorie;
+    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'posts')]
+    #[ORM\JoinTable(name: "tag_post")]
+    private Collection $tags;
+
+
 
     public function getUpdateAt(): ?\DateTimeImmutable
     {
@@ -79,16 +85,32 @@ class Post
     /**
      * @var Collection<int, Categorie>
      */
-    #[ORM\ManyToMany(targetEntity: Categorie::class, mappedBy: 'post')]
-    private Collection $categories;
+
+
+    public function setImages(Images $images): void
+    {
+        $this->images = $images;
+    }
+
+    public function setCommentaires(Collection $commentaires): void
+    {
+        $this->commentaires = $commentaires;
+    }
+
+    public function setCategories(Collection $categories): void
+    {
+        $this->categorie = $categories;
+    }
 
     public function __construct()
     {
         $this->commentaires = new ArrayCollection();
         $this->images = new Images();
-        $this->categories = new ArrayCollection();
+        $this->categorie = new ArrayCollection();
         $this->updateAt=new \DateTimeImmutable();
         $this->createdAt=new \DateTimeImmutable();
+        $this->tags = new ArrayCollection();
+
     }
     #[ORM\PreUpdate]
     public function preUpdate (){
@@ -105,6 +127,10 @@ class Post
 
 
 
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
 
     public function getTitre(): ?string
     {
@@ -129,18 +155,7 @@ class Post
 
         return $this;
     }
-
-    public function getDatePublication(): ?\DateTimeInterface
-    {
-        return $this->date_publication;
-    }
-
-    public function setDatePublication(\DateTimeInterface $date_publication): static
-    {
-        $this->date_publication = $date_publication;
-
-        return $this;
-    }
+ 
 
     public function getUtilisateur(): ?Utilisateur
     {
@@ -153,37 +168,25 @@ class Post
 
         return $this;
     }
+ 
 
-
-
-
-    /**
-     * @return Collection<int, tags>
-     */
-    public function getTags(): Collection
-    {
-
-        return $this->tags;
-
-    }
-
-    public function addTag(tags $tag): static
-    {
+    public function addTag(Tag $tag): self {
         if (!$this->tags->contains($tag)) {
-            $this->tags->add($tag);
+            $this->tags[] = $tag;
+            $tag->addPost($this);
         }
-
+    
         return $this;
     }
-
-    public function removeTag(tags $tag): static
-    {
-        $this->tags->removeElement($tag);
-
+    
+    public function removeTag(Tag $tag): self {
+        if ($this->tags->contains($tag)) {
+            $this->tags->removeElement($tag);
+            $tag->removePost($this);
+        }
+    
         return $this;
-    }
-
-    /**
+    }    /**
      * @return Collection<int, Commentaire>
      */
     public function getCommentaires(): Collection
@@ -218,13 +221,13 @@ class Post
      */
     public function getCategories(): Collection
     {
-        return $this->categories;
+        return $this->categorie;
     }
 
     public function addCategory(Categorie $category): static
     {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
+        if (!$this->categorie->contains($category)) {
+            $this->categorie->add($category);
             $category->addPost($this);
         }
 
@@ -233,7 +236,7 @@ class Post
 
     public function removeCategory(Categorie $category): static
     {
-        if ($this->categories->removeElement($category)) {
+        if ($this->categorie->removeElement($category)) {
             $category->removePost($this);
         }
 
@@ -248,25 +251,5 @@ class Post
         return $this->images;
     }
 
-    public function addImage(Images $image): static
-    {
-        if (!$this->images->contains($image)) {
-            $this->images->add($image);
-            $image->setIdentity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeImage(Images $image): static
-    {
-        if ($this->images->removeElement($image)) {
-            // set the owning side to null (unless already changed)
-            if ($image->getIdentity() === $this) {
-                $image->setIdentity(null);
-            }
-        }
-
-        return $this;
-    }
+    
 }

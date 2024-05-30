@@ -6,6 +6,7 @@ use App\Repository\CategorieRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CategorieRepository::class)]
 class Categorie
@@ -15,18 +16,28 @@ class Categorie
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $nomCat = null;
+    #[ORM\Column(length: 255, unique: true)]
+    #[Assert\NotBlank()]  
+      private ?string $nomCat = null;
+    #[Assert\NotBlank()]
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $description = null;
 
+    #[ORM\Column(type:'datetime_immutable')]    
+    #[Assert\NotBlank()]  
+    private ?\DateTimeImmutable $createdAt;
     /**
      * @var Collection<int, Post>
      */
-    #[ORM\ManyToMany(targetEntity: Post::class, inversedBy: 'categories')]
-    private Collection $post;
+    #[ORM\ManyToMany(targetEntity: Post::class, inversedBy: 'categorie')]
+    #[ORM\JoinTable(name: "post_categorie")]
+
+    private Collection $posts;
 
     public function __construct()
     {
-        $this->post = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->posts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -45,19 +56,25 @@ class Categorie
 
         return $this;
     }
+    public function setDesc(string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
 
     /**
      * @return Collection<int, Post>
      */
     public function getPost(): Collection
     {
-        return $this->post;
+        return $this->posts;
     }
 
     public function addPost(Post $post): static
     {
-        if (!$this->post->contains($post)) {
-            $this->post->add($post);
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
         }
 
         return $this;
@@ -65,7 +82,7 @@ class Categorie
 
     public function removePost(Post $post): static
     {
-        $this->post->removeElement($post);
+        $this->posts->removeElement($post);
 
         return $this;
     }

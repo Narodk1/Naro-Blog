@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -32,10 +34,50 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
     #[ORM\Column(length: 180, unique: true)]
     private ?string $username = null;
+
     #[ORM\Column]
     private bool $isVerified = false;
+
+    #[ORM\OneToMany(targetEntity:Post::class, mappedBy: 'utilisateur')]
+    private Collection $posts;
+
+    public function __construct()
+    {
+        $this->posts = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection|Post[]
+     */
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(Post $post): self
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts[] = $post;
+            $post->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): self
+    {
+        if ($this->posts->removeElement($post)) {
+            // set the owning side to null (unless already changed)
+            if ($post->getUtilisateur() === $this) {
+                $post->setUtilisateur(null);
+            }
+        }
+
+        return $this;
+    }
 
     public function getId(): ?int
     {
@@ -63,6 +105,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return (string) $this->email;
     }
+
     public function getUsername(): ?string
     {
         return $this->username;

@@ -16,26 +16,7 @@ class PrincipalController extends AbstractController
             'controller_name' => 'PrincipalController',
         ]);
     }
-    #[Route('/Categorie', name: 'app_categorie')]
-    public function categorie(): Response
-    {
-        return $this->render('Categorie/Categorie.html.twig', [
-            'controller_name' => 'PrincipalController',
-        ]);
-    }
-    #[Route('/Search', name: 'app_search')]
-    public function search(): Response
-    {
-        return $this->render('Search-resultat/Search-post.html.twig', [
-            'controller_name' => 'PrincipalController',
-        ]);
-    }
-    #[Route('/SinglePost', name: 'app_single')]
-    public function Snigle(): Response
-    {
-        return $this->render('Single-Post/Single-post.html.twig', [
-            'controller_name' => 'PrincipalController',
-        ]);
-    }
-
+    
+   
+   
 }

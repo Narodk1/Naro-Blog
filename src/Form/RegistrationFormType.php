@@ -1,10 +1,14 @@
 <?php
 
+// src/Form/RegistrationFormType.php
+// src/Form/RegistrationFormType.php
+
 namespace App\Form;
 
 use App\Entity\Utilisateur;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -18,35 +22,57 @@ class RegistrationFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username')
-            ->add('email', null, [
-                'label' => 'Your Email',
+            ->add('username', null, [
+                'label' => 'Nom d\'utilisateur',
                 'constraints' => [
-                    new NotBlank(['message' => 'Please enter an email address']),
-                    new Email(['message' => 'The email "{{ value }}" is not a valid email address.']),
+                    new NotBlank([
+                        'message' => 'Veuillez entrer un nom d\'utilisateur',
+                    ]),
+                ],
+                'attr' => [
+                    'class' => 'form-control',
                 ],
             ])
-            ->add('AccepterLesConditions', CheckboxType::class, [
+            ->add('email', EmailType::class, [
+                'label' => 'Votre Email',
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Veuillez entrer une adresse email',
+                    ]),
+                    new Email([
+                        'message' => 'L\'email "{{ value }}" n\'est pas une adresse email valide.',
+                    ]),
+                ],
+                'attr' => [
+                    'class' => 'form-control',
+                ],
+            ])
+            ->add('accepterLesConditions', CheckboxType::class, [
+                'label' => 'Accepter les conditions',
                 'mapped' => false,
                 'constraints' => [
                     new IsTrue([
-                        'message' => 'Vous Devez accepter nos conditions.',
+                        'message' => 'Vous devez accepter nos conditions.',
                     ]),
                 ],
+                'attr' => [
+                    'class' => 'form-check-input',
+                ],
             ])
-            ->add('Password', PasswordType::class, [
-                // instead of being set onto the object directly,
-                // this is read and encoded in the controller
+            ->add('plainPassword', PasswordType::class, [
+                'label' => 'Mot de passe',
                 'mapped' => false,
-                'attr' => ['autocomplete' => 'new-password'],
+                'attr' => [
+                    'autocomplete' => 'new-password',
+                    'class' => 'form-control',
+                ],
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Please enter a password',
+                        'message' => 'Veuillez entrer un mot de passe',
                     ]),
                     new Length([
                         'min' => 6,
-                        'minMessage' => 'Your password should be at least {{ limit }} characters',
-                        // max length allowed by Symfony for security reasons
+                        'minMessage' => 'Votre mot de passe doit comporter au moins {{ limit }} caractères',
                         'max' => 4096,
                     ]),
                 ],
